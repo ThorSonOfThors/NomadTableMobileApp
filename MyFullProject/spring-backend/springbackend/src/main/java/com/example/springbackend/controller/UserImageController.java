@@ -71,12 +71,31 @@ public class UserImageController {
                 return service.getImages(id);
         }
 
-    @DeleteMapping("/{id}/images/{imageId}")
+        @DeleteMapping("/{id}/images/{imageId}")
         public void deleteImage(
                 @PathVariable Long id,
                 @PathVariable Long imageId
         ) {
         service.delete(imageId);
+        }
+
+
+        @GetMapping(
+        value = "/profile-image/{imageId}",
+        produces = MediaType.IMAGE_JPEG_VALUE
+        )
+        public @ResponseBody byte[] getProfileImage(
+                @PathVariable Long imageId
+        ) throws Exception {
+
+        UserImage image = service.findById(imageId);
+
+        Path path = Paths.get(
+                "uploads",
+                image.getImagePath()
+        );
+
+        return Files.readAllBytes(path);
         }
 
 

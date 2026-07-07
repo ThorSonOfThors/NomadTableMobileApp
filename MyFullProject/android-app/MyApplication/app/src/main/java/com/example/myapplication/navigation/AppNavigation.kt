@@ -10,10 +10,13 @@ import androidx.navigation.compose.rememberNavController
 import com.example.myapplication.components.BottomNavBar
 import com.example.myapplication.screens.HomeScreen
 import com.example.myapplication.screens.LoginScreen
+import com.example.myapplication.screens.MessagesScreen
 import com.example.myapplication.screens.ProfileScreen
 import com.example.myapplication.screens.RegisterScreen
-import com.example.myapplication.screens.SettingsScreen
 import com.example.myapplication.session.SessionManager
+import androidx.navigation.NavType
+import androidx.navigation.navArgument
+import com.example.myapplication.screens.ChatScreen
 
 @Composable
 fun AppNavigation() {
@@ -55,9 +58,29 @@ fun AppNavigation() {
                 RegisterScreen(navController)
             }
 
-            composable("settings") {
-                SettingsScreen()
+            composable("Messages") {
+                MessagesScreen(
+                    userId = SessionManager.getUserId(),
+                    navController
+                )
             }
+
+
+            composable(
+                route = "chat/{chatId}",
+                arguments = listOf(
+                    navArgument("chatId") {
+                        type = NavType.LongType
+                    }
+                )
+            ) { backStackEntry ->
+
+                val chatId = backStackEntry.arguments!!.getLong("chatId")
+
+                ChatScreen(chatId , userId = SessionManager.getUserId()!!, navController)
+            }
+
+
         }
     }
 }

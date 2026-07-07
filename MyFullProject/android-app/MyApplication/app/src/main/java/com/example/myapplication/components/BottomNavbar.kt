@@ -36,10 +36,10 @@ fun BottomNavBar(navController: NavHostController) {
         NavigationBarItem(
             selected = false,
             onClick = {
-                navController.navigate("settings")
+                navController.navigate("messages")
             },
             label = {
-                Text("Settings")
+                Text("Messages")
             },
             icon = {}
         )

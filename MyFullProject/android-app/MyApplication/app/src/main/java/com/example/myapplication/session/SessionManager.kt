@@ -1,5 +1,6 @@
 package com.example.myapplication.session
 
+
 object SessionManager {
 
     var currentUserId: Long? = null
@@ -10,5 +11,9 @@ object SessionManager {
 
     fun logout() {
         currentUserId = null
+    }
+
+    fun getUserId(): Long? {
+        return currentUserId
     }
 }

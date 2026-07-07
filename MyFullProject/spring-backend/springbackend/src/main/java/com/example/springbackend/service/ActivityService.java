@@ -41,7 +41,6 @@ public class ActivityService {
 
     public Activity create(CreateActivityRequest dto) {
 
-
         Chat chat = chatService.createChat(
             dto.getTitle(),
             true,
@@ -50,11 +49,6 @@ public class ActivityService {
 
         Activity activity = new Activity();
 
-
-        System.out.println(
-        "CREATED CHAT ID = "
-        + chat.getChatId()
-);
 
         activity.setChatId(chat.getChatId());
 
@@ -66,9 +60,8 @@ public class ActivityService {
         activity.setEventTime(dto.getEventTime());
         activity.setIsCancelled(false);
 
-        User creator =
-                userRepository.findById(dto.getCreatorId())
-                        .orElseThrow();
+        User creator = userRepository.findById(dto.getCreatorId())
+            .orElseThrow(() -> new RuntimeException("User not found"));
 
         activity.getParticipants().add(creator);
 
@@ -90,6 +83,8 @@ public class ActivityService {
 
     public Activity joinActivity(Long activityId, Long userId) {
 
+        System.out.println("Join Activity");
+
         Activity activity = activityRepository.findById(activityId)
                 .orElseThrow(() -> new RuntimeException("Activity not found"));
 
@@ -102,6 +97,12 @@ public class ActivityService {
         }
 
         activity.getParticipants().add(user);
+
+        System.out.println("Before addUserToChat");
+
+        chatService.addUserToChat(activity.getChatId(), userId);
+
+        System.out.println("After addUserToChat");
 
         return activityRepository.save(activity);
     }

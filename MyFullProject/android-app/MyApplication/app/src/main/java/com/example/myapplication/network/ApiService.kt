@@ -1,12 +1,17 @@
 package com.example.myapplication.network
 
 import com.example.myapplication.models.Activity
+import com.example.myapplication.models.Chat
+import com.example.myapplication.models.ChatHeaderResponse
 import com.example.myapplication.models.LoginRequest
 import com.example.myapplication.models.RegisterRequest
 import com.example.myapplication.models.CreateActivityRequest
+import com.example.myapplication.models.MessageDto
+import com.example.myapplication.models.SendMessageRequest
 import com.example.myapplication.models.User
 import com.example.myapplication.models.UserImage
 import okhttp3.MultipartBody
+import okhttp3.ResponseBody
 
 import retrofit2.Call
 import retrofit2.http.*
@@ -63,5 +68,48 @@ interface ApiService {
     fun createActivity(
         @Body request: CreateActivityRequest
     ): Call<Activity>
+
+
+    @POST("api/activities/{activityId}/join/{userId}")
+    fun joinActivity(
+        @Path("activityId") activityId: Long,
+        @Path("userId") userId: Long
+    ): Call<Activity>
+
+
+    @GET("api/chats/user/{userId}")
+    fun getUserChats(
+        @Path("userId") userId: Long
+    ): Call<List<Chat>>
+
+
+    @GET("api/chats/{chatId}")
+    fun getChatHeader(
+        @Path("chatId") chatId: Long
+    ): Call<ChatHeaderResponse>
+
+
+    @GET("api/chats/{chatId}/messages")
+    fun getMessages(
+        @Path("chatId") chatId: Long
+    ): Call<List<MessageDto>>
+
+    @POST("api/chats/{chatId}/messages")
+    fun sendMessage(
+        @Path("chatId") chatId: Long,
+        @Body request: SendMessageRequest
+    ): Call<MessageDto>
+
+    @POST("api/chats/{chatId}/seen/{userId}")
+    fun markMessagesSeen(
+        @Path("chatId") chatId: Long,
+        @Path("userId") userId: Long
+    ): Call<Void>
+
+
+    @GET("api/users/profile-image/{imageId}")
+    fun getProfileImage(
+        @Path("imageId") imageId: Long
+    ): Call<ResponseBody>
 
 }

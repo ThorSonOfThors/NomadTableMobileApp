@@ -41,6 +41,8 @@ fun HomeScreen(userId: Long?) {
 
     val context = LocalContext.current
 
+    var selectedActivity by remember { mutableStateOf<Activity?>(null) }
+
     // load activities
     LaunchedEffect(Unit) {
         RetrofitInstance.api.getActivities()
@@ -94,7 +96,12 @@ fun HomeScreen(userId: Long?) {
                     )
 
                     marker.title = activity.title
-                    marker.snippet = "by ${activity.creatorName}"
+                    marker.snippet = activity.description
+
+                    marker.setOnMarkerClickListener { _, _ ->
+                        selectedActivity = activity
+                        true
+                    }
 
                     mapView.overlays.add(marker)
                 }
@@ -123,6 +130,78 @@ fun HomeScreen(userId: Long?) {
             onDismiss = { showDialog = false },
             onCreated = { newActivity ->
                 activities = activities + newActivity
+            }
+        )
+    }
+
+    selectedActivity?.let { activity ->
+
+        AlertDialog(
+            onDismissRequest = {
+                selectedActivity = null
+            },
+
+            title = {
+                Text(activity.creatorName +" wants to " +  activity.title)
+            },
+
+            text = {
+                Column {
+
+                    Text(activity.description)
+
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    Text("Time: ${activity.eventTime}")
+                    //Text("Longitude: ${activity.longitude}")
+                }
+            },
+
+            confirmButton = {
+                Button(
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = androidx.compose.ui.graphics.Color(0xFF4CAF50)
+                    ),
+                    onClick = {
+
+                        if (userId != null) {
+
+                            RetrofitInstance.api.joinActivity(
+                                activity.activityId,
+                                userId
+                            ).enqueue(object : Callback<Activity> {
+
+                                override fun onResponse(
+                                    call: Call<Activity>,
+                                    response: Response<Activity>
+                                ) {
+                                    if (response.isSuccessful) {
+                                        selectedActivity = null
+                                    }
+                                }
+
+                                override fun onFailure(
+                                    call: Call<Activity>,
+                                    t: Throwable
+                                ) {
+                                    // Handle failure if desired
+                                }
+                            })
+                        }
+                    }
+                ) {
+                    Text("Join Activity")
+                }
+            },
+
+            dismissButton = {
+                Button(
+                    onClick = {
+                        selectedActivity = null
+                    }
+                ) {
+                    Text("Close")
+                }
             }
         )
     }

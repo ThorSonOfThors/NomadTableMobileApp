@@ -36,5 +36,11 @@ public class UserImageService {
     }
 
 
+    public UserImage findById(Long imageId) {
+
+        return repository.findById(imageId)
+                .orElseThrow();
+    }
+
     
 }
