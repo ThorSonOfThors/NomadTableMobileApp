@@ -46,9 +46,13 @@ import java.io.File
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.navigation.NavController
 
 @Composable
-fun ProfileScreen() {
+fun ProfileScreen(
+    currentUserId: Long?,
+    navController: NavController
+) {
 
     val userId = SessionManager.currentUserId
 
@@ -61,6 +65,9 @@ fun ProfileScreen() {
         mutableStateOf(false)
     }
 
+    var createdAt by remember {
+        mutableStateOf("")
+    }
 
 
     val context = LocalContext.current
@@ -188,7 +195,7 @@ fun ProfileScreen() {
                                                     countryOfOrigin = country,
                                                     email = email,
                                                     bio = bio,
-                                                    profileImageId = uploadedImage.id
+                                                    profileImageId = uploadedImage.id,
                                                 )
                                             ).enqueue(object : Callback<User> {
 
@@ -382,6 +389,16 @@ fun ProfileScreen() {
             }
         ) {
             Text("Change Profile Picture")
+        }
+
+
+        Button(
+            modifier = Modifier.fillMaxWidth(),
+            onClick = {
+                navController.navigate("friends/$currentUserId")
+            }
+        ) {
+            Text("Friend Requests")
         }
 
         Spacer(
@@ -624,7 +641,7 @@ fun ProfileScreen() {
                                                                 countryOfOrigin = country,
                                                                 email = email,
                                                                 bio = bio,
-                                                                profileImageId = null
+                                                                profileImageId = null,
                                                             )
                                                         ).enqueue(object : Callback<User> {
 

@@ -61,4 +61,7 @@ public class ChatController {
         chatService.markMessagesAsSeen(chatId, userId);
     }
 
+
+    
+
 }

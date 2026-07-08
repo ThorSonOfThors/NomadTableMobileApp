@@ -6,5 +6,6 @@ data class User(
     var countryOfOrigin: String,
     var email: String,
     val bio: String?,
-    val profileImageId: Long?
+    val profileImageId: Long?,
+    val createdAt: String? = null
 )

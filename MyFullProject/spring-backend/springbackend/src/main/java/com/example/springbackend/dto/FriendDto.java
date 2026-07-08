@@ -5,11 +5,11 @@ import lombok.Setter;
 
 @Getter
 @Setter
-public class ParticipantDto {
+public class FriendDto {
 
-    private Long id;
+    private Long friendshipId;
+    private Long userId;
     private String name;
     private Long profileImageId;
 
- 
 }

@@ -1,12 +1,18 @@
 package com.example.myapplication.network
 
 import com.example.myapplication.models.Activity
+import com.example.myapplication.models.ActivityDetailsResponse
 import com.example.myapplication.models.Chat
 import com.example.myapplication.models.ChatHeaderResponse
 import com.example.myapplication.models.LoginRequest
 import com.example.myapplication.models.RegisterRequest
 import com.example.myapplication.models.CreateActivityRequest
+import com.example.myapplication.models.Friend
+import com.example.myapplication.models.FriendRequest
+import com.example.myapplication.models.Friendship
+import com.example.myapplication.models.FriendshipStatusDto
 import com.example.myapplication.models.MessageDto
+import com.example.myapplication.models.Participant
 import com.example.myapplication.models.SendMessageRequest
 import com.example.myapplication.models.User
 import com.example.myapplication.models.UserImage
@@ -111,5 +117,101 @@ interface ApiService {
     fun getProfileImage(
         @Path("imageId") imageId: Long
     ): Call<ResponseBody>
+
+    @GET("api/activities/chat/{chatId}/details")
+    fun getActivityDetails(
+        @Path("chatId") chatId: Long
+    ): Call<ActivityDetailsResponse>
+
+
+    @GET("api/friends/status")
+    fun getFriendshipStatus(
+
+        @Query("user1")
+        user1: Long?,
+
+        @Query("user2")
+        user2: Long
+
+    ): Call<FriendshipStatusDto>
+
+
+    @POST("api/friends/request")
+    fun sendFriendRequest(
+
+        @Query("senderId")
+        senderId: Long?,
+
+        @Query("receiverId")
+        receiverId: Long
+
+    ): Call<Friendship>
+
+
+    @POST("api/friends/{friendshipId}/accept")
+    fun acceptFriendRequest(
+
+        @Path("friendshipId")
+        friendshipId: Long,
+
+        @Query("receiverId")
+        receiverId: Long
+
+    ): Call<Friendship>
+
+
+    @POST("api/friends/{friendshipId}/decline")
+    fun declineFriendRequest(
+
+        @Path("friendshipId")
+        friendshipId: Long,
+
+        @Query("receiverId")
+        receiverId: Long
+
+    ): Call<Friendship>
+
+
+    @DELETE("api/friends/{friendshipId}")
+    fun removeFriend(
+
+        @Path("friendshipId")
+        friendshipId: Long,
+
+        @Query("userId")
+        userId: Long?
+
+    ): Call<Void>
+
+
+    @GET("api/friends/{userId}")
+    fun getFriends(
+
+        @Path("userId")
+        userId: Long
+
+    ): Call<List<Friend>>
+
+
+    @GET("api/friends/pending/{userId}")
+    fun getPendingRequests(
+
+        @Path("userId")
+        userId: Long
+
+    ): Call<List<FriendRequest>>
+
+
+
+    @GET("api/friends/mutual")
+    fun getMutualFriends(
+
+        @Query("user1")
+        user1: Long,
+
+        @Query("user2")
+        user2: Long
+
+    ): Call<List<Friend>>
 
 }

@@ -2,6 +2,7 @@ package com.example.myapplication.screens
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -9,20 +10,19 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Send
 import androidx.compose.material.icons.filled.Close
-import androidx.compose.foundation.gestures.detectHorizontalDragGestures
-import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.material.icons.filled.Send
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.example.myapplication.models.ChatHeaderResponse
@@ -30,10 +30,13 @@ import com.example.myapplication.models.MessageDto
 import com.example.myapplication.models.Participant
 import com.example.myapplication.models.SendMessageRequest
 import com.example.myapplication.network.RetrofitInstance
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import retrofit2.Callback
 import retrofit2.Call
+import retrofit2.Callback
 import retrofit2.Response
+import java.text.SimpleDateFormat
+import java.util.*
 
 @Composable
 fun ChatScreen(
@@ -59,13 +62,28 @@ fun ChatScreen(
 
     var highlightedMessageId by remember { mutableStateOf<Long?>(null) }
 
-    // Helper function to get profile image URL - matching ProfileScreen format
+    // Helper function to get profile image URL
     fun getProfileImageUrl(profileImageId: Long?): String? {
         return if (profileImageId != null) {
-            // Using the same URL format as ProfileScreen
             "http://192.168.1.2:8081/api/users/profile-image/$profileImageId"
         } else {
             null
+        }
+    }
+
+    // Format timestamp to show only time (HH:mm)
+    fun formatTimeOnly(timestamp: String): String {
+        return try {
+            val inputFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.getDefault())
+            val outputFormat = SimpleDateFormat("HH:mm", Locale.getDefault())
+            val date = inputFormat.parse(timestamp)
+            if (date != null) {
+                outputFormat.format(date)
+            } else {
+                timestamp
+            }
+        } catch (e: Exception) {
+            timestamp
         }
     }
 
@@ -83,17 +101,6 @@ fun ChatScreen(
                             activityTitle = it.activityTitle
                             participantCount = it.participantCount
                             participants = it.participants
-
-                            // Log participant profile images for debugging
-                            participants.forEach { participant ->
-                                println(
-                                    "Participant: ${participant.name}, profileImageId=${participant.profileImageId}"
-                                )
-                                // Also log the full URL
-                                println(
-                                    "Image URL: ${getProfileImageUrl(participant.profileImageId)}"
-                                )
-                            }
                         }
                     }
                 }
@@ -157,7 +164,7 @@ fun ChatScreen(
             .background(MaterialTheme.colorScheme.background)
     ) {
         //---------------------------------------------------------
-        // Activity Navbar - Enhanced with proper profile images
+        // Activity Navbar
         //---------------------------------------------------------
         Surface(
             tonalElevation = 8.dp,
@@ -168,70 +175,52 @@ fun ChatScreen(
                     navController.navigate("activityDetails/$chatId")
                 }
         ) {
-            Column(
+            Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 20.dp, vertical = 16.dp)
+                    .padding(horizontal = 16.dp, vertical = 12.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
+                Column(
+                    modifier = Modifier.weight(1f)
                 ) {
-                    Column {
-                        Text(
-                            text = activityTitle,
-                            style = MaterialTheme.typography.titleLarge,
-                            fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.onSurface
-                        )
-                        Spacer(Modifier.height(4.dp))
-                        Text(
-                            text = "$participantCount participants",
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
-                    Icon(
-                        imageVector = Icons.Default.Close,
-                        contentDescription = "Close",
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant
+                    Text(
+                        text = activityTitle,
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onSurface,
+                        maxLines = 1,
+                        overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis
+                    )
+                    Text(
+                        text = "$participantCount participants",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
 
-                Spacer(Modifier.height(12.dp))
+                Spacer(Modifier.width(8.dp))
 
-                // Participant avatars with proper profile images
                 Row(
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    horizontalArrangement = Arrangement.spacedBy(4.dp),
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    participants.take(5).forEach { participant ->
+                    participants.take(7).forEach { participant ->
                         val profileImageUrl = getProfileImageUrl(participant.profileImageId)
 
-                        // Debug log
-                        println("Displaying avatar for ${participant.name}: URL=$profileImageUrl")
-
                         if (profileImageUrl != null) {
-                            // Show profile image if available
                             AsyncImage(
                                 model = profileImageUrl,
                                 contentDescription = participant.name,
                                 modifier = Modifier
-                                    .size(40.dp)
+                                    .size(32.dp)
                                     .clip(CircleShape),
-                                contentScale = ContentScale.Crop,
-                                onSuccess = {
-                                    println("Image loaded: $profileImageUrl")
-                                },
-                                onError = {
-                                    println("Failed to load: $profileImageUrl")
-                                    println(it.result.throwable)
-                                }
+                                contentScale = ContentScale.Crop
                             )
                         } else {
-                            // Show initials if no profile image
                             Surface(
-                                modifier = Modifier.size(40.dp),
+                                modifier = Modifier.size(32.dp),
                                 shape = CircleShape,
                                 color = MaterialTheme.colorScheme.primaryContainer
                             ) {
@@ -241,15 +230,17 @@ fun ChatScreen(
                                     Text(
                                         text = participant.name.first().toString(),
                                         color = MaterialTheme.colorScheme.onPrimaryContainer,
-                                        fontWeight = FontWeight.Medium
+                                        fontWeight = FontWeight.Medium,
+                                        fontSize = 12.sp
                                     )
                                 }
                             }
                         }
                     }
-                    if (participants.size > 5) {
+
+                    if (participants.size > 7) {
                         Surface(
-                            modifier = Modifier.size(40.dp),
+                            modifier = Modifier.size(32.dp),
                             shape = CircleShape,
                             color = MaterialTheme.colorScheme.surfaceVariant
                         ) {
@@ -257,10 +248,11 @@ fun ChatScreen(
                                 contentAlignment = Alignment.Center
                             ) {
                                 Text(
-                                    text = "+${participants.size - 5}",
+                                    text = "...",
                                     style = MaterialTheme.typography.labelSmall,
-                                    fontWeight = FontWeight.Medium,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    fontWeight = FontWeight.Bold,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    fontSize = 14.sp
                                 )
                             }
                         }
@@ -285,11 +277,16 @@ fun ChatScreen(
             ) { message ->
                 val mine = message.senderId == userId
                 val highlighted = highlightedMessageId == message.id
+                val timeOnly = formatTimeOnly(message.sentAt)
 
-                Column(
+                val currentIndex = messages.indexOf(message)
+                val previousMessage = if (currentIndex > 0) messages[currentIndex - 1] else null
+                val isFirstInSequence = previousMessage == null || previousMessage.senderId != message.senderId
+
+                Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(vertical = 4.dp)
+                        .padding(vertical = 2.dp)
                         .pointerInput(message.id) {
                             detectHorizontalDragGestures(
                                 onHorizontalDrag = { _, dragAmount ->
@@ -299,121 +296,210 @@ fun ChatScreen(
                                 }
                             )
                         },
-                    horizontalAlignment = if (mine) Alignment.End else Alignment.Start
+                    horizontalArrangement = if (mine) Arrangement.End else Arrangement.Start,
+                    verticalAlignment = Alignment.Top
                 ) {
+                    // Profile image (only for incoming messages and first in sequence)
                     if (!mine) {
-                        Text(
-                            text = message.senderName,
-                            style = MaterialTheme.typography.labelMedium,
-                            color = MaterialTheme.colorScheme.primary,
-                            fontWeight = FontWeight.Medium
-                        )
-                        Spacer(Modifier.height(2.dp))
-                    }
+                        if (isFirstInSequence) {
+                            val profileImageUrl = getProfileImageUrl(
+                                participants.find { it.id == message.senderId }?.profileImageId
+                            )
 
-                    // Reply preview card
-                    if (message.replyToMessageId != null) {
-                        Card(
-                            modifier = Modifier
-                                .padding(bottom = 4.dp)
-                                .clickable {
-                                    val repliedId = message.replyToMessageId
-                                    val index = messageIndexMap[repliedId]
-                                    if (index != null) {
-                                        coroutineScope.launch {
-                                            listState.animateScrollToItem(index)
-                                            highlightedMessageId = repliedId
-                                            kotlinx.coroutines.delay(1500)
-                                            highlightedMessageId = null
+                            Box(
+                                modifier = Modifier
+                                    .padding(end = 8.dp)
+                                    .clickable {
+                                        navController.navigate("userProfile/${message.senderId}")
+                                    }
+                            ) {
+                                if (profileImageUrl != null) {
+                                    AsyncImage(
+                                        model = profileImageUrl,
+                                        contentDescription = message.senderName,
+                                        modifier = Modifier
+                                            .size(32.dp)
+                                            .clip(CircleShape),
+                                        contentScale = ContentScale.Crop
+                                    )
+                                } else {
+                                    Surface(
+                                        modifier = Modifier.size(32.dp),
+                                        shape = CircleShape,
+                                        color = MaterialTheme.colorScheme.primaryContainer
+                                    ) {
+                                        Box(
+                                            contentAlignment = Alignment.Center
+                                        ) {
+                                            Text(
+                                                text = message.senderName.first().toString(),
+                                                color = MaterialTheme.colorScheme.onPrimaryContainer,
+                                                fontWeight = FontWeight.Medium,
+                                                fontSize = 12.sp
+                                            )
                                         }
                                     }
+                                }
+                            }
+                        } else {
+                            Spacer(modifier = Modifier.width(40.dp))
+                        }
+                    }
+
+                    Column(
+                        horizontalAlignment = if (mine) Alignment.End else Alignment.Start,
+                        modifier = Modifier.fillMaxWidth(if (mine) 1f else 0.85f)
+                    ) {
+                        // Show sender name only for first message in sequence (incoming)
+                        if (!mine && isFirstInSequence) {
+                            Text(
+                                text = message.senderName,
+                                style = MaterialTheme.typography.labelMedium,
+                                color = MaterialTheme.colorScheme.primary,
+                                fontWeight = FontWeight.Medium,
+                                modifier = Modifier.padding(bottom = 2.dp)
+                            )
+                        }
+
+                        // Reply preview card
+                        if (message.replyToMessageId != null) {
+                            Card(
+                                modifier = Modifier
+                                    .padding(bottom = 4.dp)
+                                    .clickable {
+                                        val repliedId = message.replyToMessageId
+                                        val index = messageIndexMap[repliedId]
+                                        if (index != null) {
+                                            coroutineScope.launch {
+                                                listState.animateScrollToItem(index)
+                                                highlightedMessageId = repliedId
+                                                delay(1500)
+                                                highlightedMessageId = null
+                                            }
+                                        }
+                                    },
+                                colors = CardDefaults.cardColors(
+                                    containerColor = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.6f)
+                                ),
+                                shape = RoundedCornerShape(12.dp)
+                            ) {
+                                Column(
+                                    modifier = Modifier
+                                        .wrapContentWidth()
+                                        .widthIn(max = 250.dp)
+                                        .padding(horizontal = 12.dp, vertical = 8.dp)
+                                ) {
+                                    Text(
+                                        text = "↩ ${message.replySenderName ?: "Unknown"}",
+                                        style = MaterialTheme.typography.labelSmall,
+                                        fontWeight = FontWeight.Bold,
+                                        color = MaterialTheme.colorScheme.primary
+                                    )
+                                    Text(
+                                        text = message.replyPreview ?: "",
+                                        style = MaterialTheme.typography.bodySmall,
+                                        maxLines = 2,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                }
+                            }
+                        }
+
+                        // Message bubble with correct corner shapes
+                        Surface(
+                            shape = RoundedCornerShape(
+                                topStart = if (mine) {
+                                    // For user's messages: top-left is rounded
+                                    16.dp
+                                } else {
+                                    // For other users' messages: top-left is flat (sharp edge)
+                                    4.dp
                                 },
-                            colors = CardDefaults.cardColors(
-                                containerColor = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.6f)
+                                topEnd = if (mine) {
+                                    // For user's messages: top-right is flat (sharp edge)
+                                    4.dp
+                                } else {
+                                    // For other users' messages: top-right is rounded
+                                    16.dp
+                                },
+                                bottomStart = if (mine) 16.dp else 4.dp,
+                                bottomEnd = if (mine) 4.dp else 16.dp
                             ),
-                            shape = RoundedCornerShape(12.dp)
+                            color = when {
+                                highlighted -> Color.Yellow.copy(alpha = 0.3f)
+                                mine -> MaterialTheme.colorScheme.primaryContainer
+                                else -> MaterialTheme.colorScheme.secondaryContainer
+                            },
+                            shadowElevation = if (highlighted) 4.dp else 0.dp,
+                            modifier = Modifier
+                                .wrapContentWidth()
+                                .widthIn(min = 50.dp, max = 280.dp)
                         ) {
                             Column(
                                 modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp)
                             ) {
+                                // Message text
                                 Text(
-                                    text = "↩ ${message.replySenderName ?: "Unknown"}",
-                                    style = MaterialTheme.typography.labelSmall,
-                                    fontWeight = FontWeight.Bold,
-                                    color = MaterialTheme.colorScheme.primary
+                                    text = message.content,
+                                    color = when {
+                                        highlighted -> MaterialTheme.colorScheme.onSurface
+                                        mine -> MaterialTheme.colorScheme.onPrimaryContainer
+                                        else -> MaterialTheme.colorScheme.onSecondaryContainer
+                                    },
+                                    style = MaterialTheme.typography.bodyMedium
                                 )
-                                Text(
-                                    text = message.replyPreview ?: "",
-                                    style = MaterialTheme.typography.bodySmall,
-                                    maxLines = 2,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                                )
-                            }
-                        }
-                    }
 
-                    // Message bubble
-                    Surface(
-                        shape = RoundedCornerShape(
-                            topStart = 16.dp,
-                            topEnd = 16.dp,
-                            bottomStart = if (mine) 16.dp else 4.dp,
-                            bottomEnd = if (mine) 4.dp else 16.dp
-                        ),
-                        color = when {
-                            highlighted -> Color.Yellow.copy(alpha = 0.3f)
-                            mine -> MaterialTheme.colorScheme.primaryContainer
-                            else -> MaterialTheme.colorScheme.secondaryContainer
-                        },
-                        shadowElevation = if (highlighted) 4.dp else 0.dp
-                    ) {
-                        Text(
-                            text = message.content,
-                            modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
-                            color = when {
-                                highlighted -> MaterialTheme.colorScheme.onSurface
-                                mine -> MaterialTheme.colorScheme.onPrimaryContainer
-                                else -> MaterialTheme.colorScheme.onSecondaryContainer
-                            },
-                            style = MaterialTheme.typography.bodyMedium
-                        )
-                    }
-
-                    Spacer(Modifier.height(4.dp))
-
-                    // Timestamp and status
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(6.dp)
-                    ) {
-                        Text(
-                            text = message.sentAt,
-                            style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
-                        )
-
-                        if (mine) {
-                            when (message.status) {
-                                "sending" -> {
+                                // Time and status - bottom right for all messages
+                                Row(
+                                    modifier = Modifier
+                                        .wrapContentWidth()
+                                        .align(Alignment.End)
+                                        .padding(top = 2.dp),
+                                    horizontalArrangement = Arrangement.End,
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
                                     Text(
-                                        "✓",
-                                        color = Color.Gray,
-                                        style = MaterialTheme.typography.labelSmall
+                                        text = timeOnly,
+                                        style = MaterialTheme.typography.labelSmall,
+                                        color = if (mine) {
+                                            MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.6f)
+                                        } else {
+                                            MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.6f)
+                                        },
+                                        fontSize = 9.sp
                                     )
-                                }
-                                "sent" -> {
-                                    Text(
-                                        "✓✓",
-                                        color = Color.Gray,
-                                        style = MaterialTheme.typography.labelSmall
-                                    )
-                                }
-                                "seen" -> {
-                                    Text(
-                                        "✓✓",
-                                        color = MaterialTheme.colorScheme.primary,
-                                        style = MaterialTheme.typography.labelSmall
-                                    )
+
+                                    // Show status only for outgoing messages
+                                    if (mine) {
+                                        Spacer(Modifier.width(3.dp))
+
+                                        when (message.status) {
+                                            "sending" -> {
+                                                Text(
+                                                    text = "✓",
+                                                    color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.4f),
+                                                    fontSize = 9.sp,
+                                                    letterSpacing = 0.sp
+                                                )
+                                            }
+                                            "sent" -> {
+                                                Text(
+                                                    text = "✓✓",
+                                                    color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.6f),
+                                                    fontSize = 9.sp,
+                                                    letterSpacing = (-0.5).sp
+                                                )
+                                            }
+                                            "seen" -> {
+                                                Text(
+                                                    text = "✓✓",
+                                                    color = Color(0xFF4CAF50),
+                                                    fontSize = 9.sp,
+                                                    letterSpacing = (-0.5).sp
+                                                )
+                                            }
+                                        }
+                                    }
                                 }
                             }
                         }
@@ -436,7 +522,7 @@ fun ChatScreen(
                             coroutineScope.launch {
                                 listState.animateScrollToItem(index)
                                 highlightedMessageId = reply.id
-                                kotlinx.coroutines.delay(1500)
+                                delay(1500)
                                 highlightedMessageId = null
                             }
                         }

@@ -2,6 +2,7 @@ package com.example.springbackend.controller;
 
 import java.util.List;
 
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -10,6 +11,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.example.springbackend.dto.ActivityDetailsDto;
 import com.example.springbackend.dto.ActivityResponse;
 import com.example.springbackend.dto.CreateActivityRequest;
 import com.example.springbackend.entity.Activity;
@@ -72,6 +74,19 @@ public class ActivityController {
     ) {
         return activityService.leaveActivity(activityId, userId);
     }
+
+
+    @GetMapping("/chat/{chatId}/details")
+    public ResponseEntity<ActivityDetailsDto> getActivityDetails(
+            @PathVariable Long chatId) {
+
+        return ResponseEntity.ok(
+                activityService.getActivityDetails(chatId)
+        );
+    }
+
+
+    
     
 
     

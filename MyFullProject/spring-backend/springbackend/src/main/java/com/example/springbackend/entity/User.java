@@ -33,7 +33,7 @@ public class User {
     @Column(name = "created_at")
     private LocalDateTime createdAt;
 
-    @Column(name = "bio")
+    @Column(name = "bio", length = 1000)
     private String bio;
 
     public User() {}

@@ -16,7 +16,10 @@ import com.example.myapplication.screens.RegisterScreen
 import com.example.myapplication.session.SessionManager
 import androidx.navigation.NavType
 import androidx.navigation.navArgument
+import com.example.myapplication.screens.ActivityDetailsScreen
 import com.example.myapplication.screens.ChatScreen
+import com.example.myapplication.screens.ProfileViewScreen
+import com.example.myapplication.screens.FriendsScreen
 
 @Composable
 fun AppNavigation() {
@@ -44,7 +47,7 @@ fun AppNavigation() {
             composable("profile") {
 
                 if (SessionManager.isLoggedIn()) {
-                    ProfileScreen()
+                    ProfileScreen(currentUserId = SessionManager.currentUserId , navController)
                 } else {
                     LoginScreen(navController)
                 }
@@ -78,6 +81,59 @@ fun AppNavigation() {
                 val chatId = backStackEntry.arguments!!.getLong("chatId")
 
                 ChatScreen(chatId , userId = SessionManager.getUserId()!!, navController)
+            }
+
+
+
+            composable(
+                route = "userProfile/{userId}",
+                arguments = listOf(
+                    navArgument("userId") {
+                        type = NavType.LongType
+                    }
+                )
+            ) { backStackEntry ->
+
+                val userId =
+                    backStackEntry.arguments!!
+                        .getLong("userId")
+
+                ProfileViewScreen(
+                    userId = userId,
+                    navController = navController
+                )
+            }
+
+
+            composable(
+                route = "activityDetails/{chatId}",
+                arguments = listOf(
+                    navArgument("chatId") {
+                        type = NavType.LongType
+                    }
+                )
+            ) { backStackEntry ->
+
+                val chatId = backStackEntry.arguments!!.getLong("chatId")
+
+                ActivityDetailsScreen(
+                    chatId = chatId,
+                    navController = navController
+                )
+            }
+
+
+            composable(
+                "friends/{userId}"
+            ) { backStackEntry ->
+
+                FriendsScreen(
+                    userId = backStackEntry.arguments!!
+                        .getString("userId")!!
+                        .toLong(),
+                    navController = navController
+                )
+
             }
 
 

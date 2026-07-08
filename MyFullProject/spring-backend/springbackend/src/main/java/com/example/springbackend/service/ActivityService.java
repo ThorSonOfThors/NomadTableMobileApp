@@ -4,8 +4,10 @@ import java.util.List;
 
 import org.springframework.stereotype.Service;
 
+import com.example.springbackend.dto.ActivityDetailsDto;
 import com.example.springbackend.dto.ActivityResponse;
 import com.example.springbackend.dto.CreateActivityRequest;
+import com.example.springbackend.dto.ParticipantDto;
 import com.example.springbackend.entity.Activity;
 import com.example.springbackend.entity.Chat;
 import com.example.springbackend.entity.User;
@@ -150,6 +152,41 @@ public class ActivityService {
         activity.getParticipants().remove(user);
 
         return activityRepository.save(activity);
+    }
+
+
+
+    public ActivityDetailsDto getActivityDetails(Long chatId) {
+
+        Activity activity = activityRepository.findByChatId(chatId)
+                .orElseThrow(() ->
+                        new RuntimeException("Activity not found"));
+
+        ActivityDetailsDto dto = new ActivityDetailsDto();
+
+        dto.setActivityId(activity.getActivityId());
+        dto.setChatId(activity.getChatId());
+        dto.setTitle(activity.getTitle());
+        dto.setDescription(activity.getDescription());
+        dto.setEventTime(activity.getEventTime());
+
+        List<ParticipantDto> participantDtos = activity.getParticipants()
+        .stream()
+        .map(user -> {
+            ParticipantDto participant = new ParticipantDto();
+
+            participant.setId(user.getId());
+            participant.setName(user.getName());
+            participant.setProfileImageId(user.getProfileImageId());
+
+            return participant;
+        })
+        .toList();
+
+        dto.setParticipants(participantDtos);
+        dto.setParticipantCount(participantDtos.size());
+
+        return dto;
     }
 
 }
