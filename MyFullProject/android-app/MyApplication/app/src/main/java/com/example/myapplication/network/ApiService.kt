@@ -11,8 +11,12 @@ import com.example.myapplication.models.Friend
 import com.example.myapplication.models.FriendRequest
 import com.example.myapplication.models.Friendship
 import com.example.myapplication.models.FriendshipStatusDto
+import com.example.myapplication.models.LoginResponse
+import com.example.myapplication.models.LogoutRequest
 import com.example.myapplication.models.MessageDto
 import com.example.myapplication.models.Participant
+import com.example.myapplication.models.RefreshRequest
+import com.example.myapplication.models.RefreshResponse
 import com.example.myapplication.models.SendMessageRequest
 import com.example.myapplication.models.User
 import com.example.myapplication.models.UserImage
@@ -29,10 +33,20 @@ interface ApiService {
         @Body request: RegisterRequest
     ): Call<User>
 
-    @POST("api/auth/login")
+    @POST("/api/auth/login")
     fun login(
         @Body request: LoginRequest
-    ): Call<User>
+    ): Call<LoginResponse>
+
+    @POST("/api/auth/refresh")
+    fun refresh(
+        @Body request: RefreshRequest
+    ): Call<RefreshResponse>
+
+    @POST("/api/auth/logout")
+    fun logout(
+        @Body request: LogoutRequest
+    ): Call<Void>
 
     @GET("api/users/{id}")
     fun getUser(

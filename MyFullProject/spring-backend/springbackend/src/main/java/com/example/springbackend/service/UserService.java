@@ -6,6 +6,7 @@ import com.example.springbackend.entity.User;
 import com.example.springbackend.repository.UserRepository;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -16,37 +17,14 @@ public class UserService {
     @Autowired
     private final UserRepository userRepository;
 
+    
+
     public UserService(UserRepository userRepository) {
+        
         this.userRepository = userRepository;
+        
     }
 
-    public User register(RegisterRequest request) {
-
-        User user = new User();
-
-        user.setName(request.getName());
-        user.setEmail(request.getEmail());
-
-        user.setPasswordHash(request.getPassword());
-
-        user.setCountryOfOrigin(request.getCountryOfOrigin());
-
-        user.setCreatedAt(LocalDateTime.now());
-
-        return userRepository.save(user);
-    }
-
-    public User login(LoginRequest request) {
-
-        User user = userRepository.findByEmail(request.getEmail())
-                .orElseThrow();
-
-        if (!user.getPasswordHash().equals(request.getPassword())) {
-            throw new RuntimeException("Wrong password");
-        }
-
-        return user;
-    }
 
     public User getUser(Long id) {
         return userRepository.findById(id).orElseThrow();

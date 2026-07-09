@@ -423,7 +423,7 @@ fun ChatScreen(
                                     16.dp
                                 },
                                 bottomStart = if (mine) 16.dp else 4.dp,
-                                bottomEnd = if (mine) 4.dp else 16.dp
+                                bottomEnd = if (mine) 16.dp else 16.dp
                             ),
                             color = when {
                                 highlighted -> Color.Yellow.copy(alpha = 0.3f)
